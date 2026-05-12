@@ -594,55 +594,54 @@ function showErr(msg){
 function icaoToPays(icao) {
   if(!icao) return {nom:'?', flag:''};
   const p2 = icao.slice(0,2).toUpperCase();
-  const p1 = icao[0].toUpperCase();
-  // [nom, code ISO pour drapeau]
-  const m2 = {
-    'LF':['France','FR'],'LT':['Turquie','TR'],'LI':['Italie','IT'],
-    'LE':['Espagne','ES'],'LD':['Croatie','HR'],'LG':['Grèce','GR'],
-    'LP':['Portugal','PT'],'LY':['Serbie','RS'],'LZ':['Slovaquie','SK'],
-    'LO':['Autriche','AT'],'LS':['Suisse','CH'],'LB':['Bulgarie','BG'],
-    'LH':['Hongrie','HU'],'LK':['Tchéquie','CZ'],'LR':['Roumanie','RO'],
-    'LL':['Israël','IL'],'LM':['Malte','MT'],'LJ':['Slovénie','SI'],
-    'EH':['Pays-Bas','NL'],'EB':['Belgique','BE'],'ED':['Allemagne','DE'],
-    'EG':['Royaume-Uni','GB'],'EI':['Irlande','IE'],'EK':['Danemark','DK'],
-    'EN':['Norvège','NO'],'EP':['Pologne','PL'],'ES':['Suède','SE'],
-    'EF':['Finlande','FI'],'EV':['Lettonie','LV'],'EY':['Lituanie','LT'],
-    'EE':['Estonie','EE'],'OL':['Liban','LB'],'OI':['Iran','IR'],
-    'OJ':['Jordanie','JO'],'OE':['Arabie Saoudite','SA'],'OK':['Koweït','KW'],
-    'OO':['Oman','OM'],'OT':['Qatar','QA'],'OS':['Syrie','SY'],
-    'DI':["Côte d'Ivoire",'CI'],'DN':['Nigeria','NG'],'DR':['Niger','NE'],
-    'DT':['Tunisie','TN'],'DG':['Ghana','GH'],
-    'FE':['Centrafrique','CF'],'FF':['Centrafrique','CF'],
-    'FM':['Madagascar','MG'],'FR':['Réunion','RE'],'FN':['Angola','AO'],
-    'FO':['Gabon','GA'],'FT':['Tchad','TD'],'FZ':['Congo RDC','CD'],
-    'FA':['Afrique du Sud','ZA'],'FC':['Congo','CG'],'FK':['Cameroun','CM'],
-    'FL':['Zambie','ZM'],'FV':['Zimbabwe','ZW'],'FW':['Malawi','MW'],
-    'GM':['Maroc','MA'],'GO':['Sénégal','SN'],'GU':['Guinée','GN'],
-    'GL':['Libéria','LR'],'GF':['Sierra Leone','SL'],'GV':['Cap-Vert','CV'],
-    'HA':['Éthiopie','ET'],'HE':['Égypte','EG'],'HK':['Kenya','KE'],
-    'HS':['Soudan','SD'],'HT':['Tanzanie','TZ'],'HU':['Ouganda','UG'],
-    'HR':['Rwanda','RW'],'HC':['Somalie','SO'],
-    'NW':['Nouvelle-Calédonie','NC'],'NT':['Polynésie Fr.','PF'],
-    'TF':['Martinique','MQ'],'TT':['Trinité','TT'],'TX':['Bermudes','BM'],
-    'CF':['Canada','CA'],'CY':['Canada','CA'],
-    'UA':['Kazakhstan','KZ'],'UB':['Azerbaïdjan','AZ'],'UG':['Géorgie','GE'],
-    'UK':['Ukraine','UA'],'UM':['Biélorussie','BY'],'UU':['Russie','RU'],
-    'ZB':['Chine','CN'],'ZS':['Chine','CN'],'RJ':['Japon','JP'],
-    'RK':['Corée du Sud','KR'],'VT':['Thaïlande','TH'],
-    'VH':['Australie','AU'],'RP':['Philippines','PH'],
-    'PH':['Hawaï','US'],'PHNL':['Hawaï','US'],'CYVR':['Canada','CA'],
-    'OLBA':['Liban','LB'],'TFFF':['Martinique','MQ'],
-    'NWWW':['Nouvelle-Calédonie','NC'],
+  // Drapeaux directement en emoji + nom
+  const m = {
+    'LF':{f:'🇫🇷',n:'France'},'LT':{f:'🇹🇷',n:'Turquie'},'LI':{f:'🇮🇹',n:'Italie'},
+    'LE':{f:'🇪🇸',n:'Espagne'},'LD':{f:'🇭🇷',n:'Croatie'},'LG':{f:'🇬🇷',n:'Grèce'},
+    'LP':{f:'🇵🇹',n:'Portugal'},'LY':{f:'🇷🇸',n:'Serbie'},'LZ':{f:'🇸🇰',n:'Slovaquie'},
+    'LO':{f:'🇦🇹',n:'Autriche'},'LS':{f:'🇨🇭',n:'Suisse'},'LB':{f:'🇧🇬',n:'Bulgarie'},
+    'LH':{f:'🇭🇺',n:'Hongrie'},'LK':{f:'🇨🇿',n:'Tchéquie'},'LR':{f:'🇷🇴',n:'Roumanie'},
+    'LL':{f:'🇮🇱',n:'Israël'},'LM':{f:'🇲🇹',n:'Malte'},'LJ':{f:'🇸🇮',n:'Slovénie'},
+    'EH':{f:'🇳🇱',n:'Pays-Bas'},'EB':{f:'🇧🇪',n:'Belgique'},'ED':{f:'🇩🇪',n:'Allemagne'},
+    'EG':{f:'🇬🇧',n:'Royaume-Uni'},'EI':{f:'🇮🇪',n:'Irlande'},'EK':{f:'🇩🇰',n:'Danemark'},
+    'EN':{f:'🇳🇴',n:'Norvège'},'EP':{f:'🇵🇱',n:'Pologne'},'ES':{f:'🇸🇪',n:'Suède'},
+    'EF':{f:'🇫🇮',n:'Finlande'},'EV':{f:'🇱🇻',n:'Lettonie'},'EY':{f:'🇱🇹',n:'Lituanie'},
+    'EE':{f:'🇪🇪',n:'Estonie'},'OL':{f:'🇱🇧',n:'Liban'},'OI':{f:'🇮🇷',n:'Iran'},
+    'OJ':{f:'🇯🇴',n:'Jordanie'},'OE':{f:'🇸🇦',n:'Arabie Saoudite'},'OK':{f:'🇰🇼',n:'Koweït'},
+    'OO':{f:'🇴🇲',n:'Oman'},'OT':{f:'🇶🇦',n:'Qatar'},'OS':{f:'🇸🇾',n:'Syrie'},
+    'DI':{f:'🇨🇮',n:"Côte d'Ivoire"},'DN':{f:'🇳🇬',n:'Nigeria'},'DR':{f:'🇳🇪',n:'Niger'},
+    'DT':{f:'🇹🇳',n:'Tunisie'},'DG':{f:'🇬🇭',n:'Ghana'},
+    'FE':{f:'🇨🇫',n:'Centrafrique'},'FF':{f:'🇨🇫',n:'Centrafrique'},
+    'FM':{f:'🇲🇬',n:'Madagascar'},'FR':{f:'🇷🇪',n:'Réunion'},
+    'FN':{f:'🇦🇴',n:'Angola'},'FO':{f:'🇬🇦',n:'Gabon'},
+    'FT':{f:'🇹🇩',n:'Tchad'},'FZ':{f:'🇨🇩',n:'Congo RDC'},
+    'FA':{f:'🇿🇦',n:'Afrique du Sud'},'FC':{f:'🇨🇬',n:'Congo'},
+    'FK':{f:'🇨🇲',n:'Cameroun'},'FL':{f:'🇿🇲',n:'Zambie'},
+    'GM':{f:'🇲🇦',n:'Maroc'},'GO':{f:'🇸🇳',n:'Sénégal'},'GU':{f:'🇬🇳',n:'Guinée'},
+    'GL':{f:'🇱🇷',n:'Libéria'},'GF':{f:'🇸🇱',n:'Sierra Leone'},'GV':{f:'🇨🇻',n:'Cap-Vert'},
+    'HA':{f:'🇪🇹',n:'Éthiopie'},'HE':{f:'🇪🇬',n:'Égypte'},'HK':{f:'🇰🇪',n:'Kenya'},
+    'HS':{f:'🇸🇩',n:'Soudan'},'HT':{f:'🇹🇿',n:'Tanzanie'},'HU':{f:'🇺🇬',n:'Ouganda'},
+    'HR':{f:'🇷🇼',n:'Rwanda'},'HC':{f:'🇸🇴',n:'Somalie'},
+    'NW':{f:'🇳🇨',n:'Nouvelle-Calédonie'},'NT':{f:'🇵🇫',n:'Polynésie Fr.'},
+    'TF':{f:'🇲🇶',n:'Martinique'},'TT':{f:'🇹🇹',n:'Trinité'},
+    'CF':{f:'🇨🇦',n:'Canada'},'CY':{f:'🇨🇦',n:'Canada'},
+    'UA':{f:'🇰🇿',n:'Kazakhstan'},'UB':{f:'🇦🇿',n:'Azerbaïdjan'},
+    'UG':{f:'🇬🇪',n:'Géorgie'},'UK':{f:'🇺🇦',n:'Ukraine'},
+    'UU':{f:'🇷🇺',n:'Russie'},'ZB':{f:'🇨🇳',n:'Chine'},'ZS':{f:'🇨🇳',n:'Chine'},
+    'RJ':{f:'🇯🇵',n:'Japon'},'RK':{f:'🇰🇷',n:'Corée du Sud'},
+    'VT':{f:'🇹🇭',n:'Thaïlande'},'VH':{f:'🇦🇺',n:'Australie'},
+    'RP':{f:'🇵🇭',n:'Philippines'},'PH':{f:'🇺🇸',n:'Hawaï (USA)'},
   };
-  const r = m2[icao.toUpperCase()] || m2[p2];
-  if(r) return {nom:r[0], flag:isoToFlag(r[1])};
-  const fallback = {'L':'Europe','E':'Europe Nord','K':'États-Unis','C':'Canada','M':'Mexique','S':'Amér. Sud','T':'Caraïbes','F':'Afrique','G':'Afrique O.','H':'Afrique E.','N':'Pacifique','O':'Moyen-Orient','P':'Pacifique N.','R':'Asie','U':'Ex-URSS','V':'Asie S.','W':'Asie SE','Y':'Australie','Z':'Asie E.'};
-  return {nom: fallback[p1] || '?', flag:''};
-}
-
-function isoToFlag(iso) {
-  if(!iso||iso.length!==2) return '';
-  return String.fromCodePoint(...[...iso.toUpperCase()].map(c=>0x1F1E6-65+c.charCodeAt(0)));
+  const r = m[icao.toUpperCase().slice(0,2)] || m[icao.toUpperCase()];
+  if(r) return {nom:r.n, flag:r.f};
+  const fb = {'L':{f:'🇪🇺',n:'Europe'},'E':{f:'🇪🇺',n:'Europe N.'},'K':{f:'🇺🇸',n:'États-Unis'},
+    'C':{f:'🇨🇦',n:'Canada'},'M':{f:'🇲🇽',n:'Mexique'},'S':{f:'🌎',n:'Amér. Sud'},
+    'T':{f:'🌴',n:'Caraïbes'},'F':{f:'🌍',n:'Afrique'},'G':{f:'🌍',n:'Afrique O.'},
+    'H':{f:'🌍',n:'Afrique E.'},'N':{f:'🌊',n:'Pacifique'},'O':{f:'🌙',n:'Moyen-Orient'},
+    'R':{f:'🌏',n:'Asie'},'U':{f:'🇷🇺',n:'Ex-URSS'},'V':{f:'🌏',n:'Asie S.'},
+    'W':{f:'🌏',n:'Asie SE'},'Y':{f:'🇦🇺',n:'Australie'},'Z':{f:'🇨🇳',n:'Asie E.'}};
+  const p1 = icao[0].toUpperCase();
+  return fb[p1] ? {nom:fb[p1].n, flag:fb[p1].f} : {nom:'?', flag:'🌐'};
 }
 
 </script>
