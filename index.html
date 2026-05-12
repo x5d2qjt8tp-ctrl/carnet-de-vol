@@ -520,13 +520,43 @@ function renderAll(){
   });
   const sorted = Object.entries(poses).sort((a,b)=>b[1]-a[1]);
   const maxP = sorted[0]?.[1] || 1;
-  el('land-list').innerHTML = sorted.map(([icao,n],i)=>`
+  const totalPoses = sorted.reduce((a,[,n])=>a+n,0);
+  const byPays = {};
+  sorted.forEach(([icao,n])=>{ const p=icaoToPays(icao); byPays[p]=(byPays[p]||0)+n; });
+  const sortedPays = Object.entries(byPays).sort((a,b)=>b[1]-a[1]);
+
+  el('land-list').innerHTML =
+    `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+      <div class="total-card">
+        <div class="tc-label">Aéroports</div>
+        <div class="tc-value" style="font-size:22px;">${sorted.length}</div>
+        <div class="tc-sub">${totalPoses} posée${totalPoses>1?'s':''}</div>
+      </div>
+      <div class="total-card">
+        <div class="tc-label">Pays</div>
+        <div class="tc-value" style="font-size:22px;color:var(--gold)">${sortedPays.length}</div>
+      </div>
+    </div>
+    <div class="sec-title"><span>Par pays</span></div>
+    <div style="background:var(--bg2);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:16px;">
+      ${sortedPays.map(([pays,n],i)=>`
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid #ffffff06;">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--muted);width:20px;">${i+1}.</div>
+          <div style="flex:1;font-family:var(--mono);font-size:13px;color:#ddeeff;">${pays}</div>
+          <div style="font-family:var(--mono);font-size:16px;color:var(--gold);font-weight:700;">${n}</div>
+        </div>`).join('')}
+    </div>
+    <div class="sec-title"><span>Par aéroport</span></div>
+    ${sorted.map(([icao,n],i)=>`
     <div class="land-item">
       <div class="land-rank ${i<3?'top3':''}">${i<3?['①','②','③'][i]:`${i+1}.`}</div>
-      <div class="land-icao">${icao}</div>
+      <div style="flex:1;">
+        <div class="land-icao">${icao}</div>
+        <div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:2px;">${icaoToPays(icao)}</div>
+      </div>
       <div class="land-bar-wrap"><div class="land-bar" style="width:${Math.round((n/maxP)*100)}%"></div></div>
       <div class="land-count">${n}</div>
-    </div>`).join('') || '<div style="color:var(--muted);font-family:var(--mono);font-size:12px;padding:10px;">Aucune donnée</div>';
+    </div>`).join('')}`;
 
   // show results
   hide('setup-area');
@@ -559,6 +589,40 @@ function showErr(msg){
   el('error-box').style.display = 'block';
   show('drop-zone');
 }
+
+// ── ICAO → Pays ──────────────────────────────────────────────────────────────
+function icaoToPays(icao) {
+  if(!icao) return '?';
+  const p2 = icao.slice(0,2).toUpperCase();
+  const p1 = icao[0].toUpperCase();
+  const m2 = {
+    'LF':'France','LT':'Turquie','LI':'Italie','LE':'Espagne','LD':'Croatie',
+    'LG':'Grèce','LP':'Portugal','LY':'Serbie','LZ':'Slovaquie','LO':'Autriche',
+    'LS':'Suisse','LB':'Bulgarie','LH':'Hongrie','LK':'Tchéquie','LR':'Roumanie',
+    'EH':'Pays-Bas','EB':'Belgique','ED':'Allemagne','EG':'Royaume-Uni',
+    'EI':'Irlande','EK':'Danemark','EN':'Norvège','EP':'Pologne','ES':'Suède',
+    'EF':'Finlande','EV':'Lettonie','EY':'Lituanie','EE':'Estonie',
+    'OL':'Liban','OI':'Iran','OJ':'Jordanie','OE':'Arabie Saoudite',
+    'DI':'Cote Ivoire','DN':'Nigeria','DR':'Niger','DT':'Tunisie',
+    'FE':'Centrafrique','FM':'Madagascar','FN':'Angola','FO':'Gabon',
+    'FT':'Tchad','FZ':'Congo RDC','FA':'Afrique du Sud','FC':'Congo',
+    'GM':'Maroc','GO':'Senegal','GU':'Guinee','HA':'Ethiopie',
+    'HE':'Egypte','HK':'Kenya','HS':'Soudan','HT':'Tanzanie','HU':'Ouganda',
+    'NW':'Nouvelle-Caledonie','NT':'Polynesie Fr.','PH':'Hawaii',
+    'TF':'Martinique','CF':'Canada','CY':'Canada',
+    'UA':'Kazakhstan','UB':'Azerbaidjan','UG':'Georgie','UK':'Ukraine',
+    'UU':'Russie','ZB':'Chine','RJ':'Japon','RK':'Coree du Sud',
+    'VT':'Thailande','VH':'Australie','RP':'Philippines',
+    'GOBD':'Senegal','FTTJ':'Tchad','DRRN':'Niger','LGSA':'Grece',
+    'FMEE':'Reunion','DIAP':'Cote Ivoire','FEFF':'Centrafrique',
+    'LFMI':'France','LFOE':'France','LFKB':'France','LFPG':'France',
+    'LFBO':'France','NWWW':'Nouvelle-Caledonie','PHNL':'Hawaii',
+    'CYVR':'Canada','OLBA':'Liban','TFFF':'Martinique',
+  };
+  // try full ICAO first, then 2-letter prefix
+  return m2[icao.toUpperCase()] || m2[p2] || {'L':'Europe','E':'Europe Nord','K':'Etats-Unis','C':'Canada','M':'Mexique','S':'Amerique Sud','T':'Caraibes','F':'Afrique','G':'Afrique Ouest','H':'Afrique Est','N':'Pacifique','O':'Moyen-Orient','P':'Pacifique Nord','R':'Asie','U':'Ex-URSS','V':'Asie Sud','W':'Asie SE','Y':'Australie','Z':'Asie Est'}[p1] || '?';
+}
+
 </script>
 </body>
 </html>
