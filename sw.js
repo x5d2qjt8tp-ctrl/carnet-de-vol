@@ -1,4 +1,4 @@
-const CACHE = 'cvol-v1';
+const CACHE = 'cvol-v3';
 const ASSETS = [
   './index.html',
   './manifest.json',
