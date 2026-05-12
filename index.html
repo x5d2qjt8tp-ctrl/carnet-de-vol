@@ -632,6 +632,32 @@ function icaoToPays(icao) {
     'VT':{f:'🇹🇭',n:'Thaïlande'},'VH':{f:'🇦🇺',n:'Australie'},
     'RP':{f:'🇵🇭',n:'Philippines'},'PH':{f:'🇺🇸',n:'Hawaï (USA)'},
   };
+  // Codes complets prioritaires
+  const full = {
+    'FMEE':{f:'🇷🇪',n:'Réunion'},'FMNA':{f:'🇷🇪',n:'Réunion'},
+    'FMMI':{f:'🇲🇬',n:'Madagascar'},'FMMN':{f:'🇲🇬',n:'Madagascar'},
+    'FMMS':{f:'🇲🇬',n:'Madagascar'},'FMMT':{f:'🇲🇬',n:'Madagascar'},
+    'FMCZ':{f:'🇰🇲',n:'Comores'},
+    'NWWW':{f:'🇳🇨',n:'Nouvelle-Calédonie'},
+    'PHNL':{f:'🇺🇸',n:'Hawaï (USA)'},
+    'CYVR':{f:'🇨🇦',n:'Canada'},'CYUL':{f:'🇨🇦',n:'Canada'},
+    'OLBA':{f:'🇱🇧',n:'Liban'},
+    'TFFF':{f:'🇲🇶',n:'Martinique'},
+    'GOBD':{f:'🇸🇳',n:'Sénégal'},
+    'DRRN':{f:'🇳🇪',n:'Niger'},
+    'LGSA':{f:'🇬🇷',n:'Grèce'},
+    'FTTJ':{f:'🇹🇩',n:'Tchad'},
+    'FEFF':{f:'🇨🇫',n:'Centrafrique'},
+    'DIAP':{f:'🇨🇮',n:"Côte d'Ivoire"},
+    'LFPG':{f:'🇫🇷',n:'France'},'LFBO':{f:'🇫🇷',n:'France'},
+    'LFMI':{f:'🇫🇷',n:'France'},'LFOE':{f:'🇫🇷',n:'France'},
+    'LFKB':{f:'🇫🇷',n:'France'},
+  };
+  const rFull = full[icao.toUpperCase()];
+  if(rFull) return {nom:rFull.n, flag:rFull.f};
+  // Correction FM = Madagascar (pas Réunion)
+  if(p2==='FM') return {nom:'Madagascar', flag:'🇲🇬'};
+  if(p2==='FR') return {nom:'Réunion', flag:'🇷🇪'};
   const r = m[icao.toUpperCase().slice(0,2)] || m[icao.toUpperCase()];
   if(r) return {nom:r.n, flag:r.f};
   const fb = {'L':{f:'🇪🇺',n:'Europe'},'E':{f:'🇪🇺',n:'Europe N.'},'K':{f:'🇺🇸',n:'États-Unis'},
