@@ -522,7 +522,7 @@ function renderAll(){
   const maxP = sorted[0]?.[1] || 1;
   const totalPoses = sorted.reduce((a,[,n])=>a+n,0);
   const byPays = {};
-  sorted.forEach(([icao,n])=>{ const p=icaoToPays(icao); byPays[p]=(byPays[p]||0)+n; });
+  sorted.forEach(([icao,n])=>{ const p=icaoToPays(icao); const k=p.flag+' '+p.nom; byPays[k]=(byPays[k]||0)+n; });
   const sortedPays = Object.entries(byPays).sort((a,b)=>b[1]-a[1]);
 
   el('land-list').innerHTML =
@@ -552,7 +552,7 @@ function renderAll(){
       <div class="land-rank ${i<3?'top3':''}">${i<3?['①','②','③'][i]:`${i+1}.`}</div>
       <div style="flex:1;">
         <div class="land-icao">${icao}</div>
-        <div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:2px;">${icaoToPays(icao)}</div>
+        <div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:2px;">${icaoToPays(icao).flag} ${icaoToPays(icao).nom}</div>
       </div>
       <div class="land-bar-wrap"><div class="land-bar" style="width:${Math.round((n/maxP)*100)}%"></div></div>
       <div class="land-count">${n}</div>
@@ -592,35 +592,57 @@ function showErr(msg){
 
 // ── ICAO → Pays ──────────────────────────────────────────────────────────────
 function icaoToPays(icao) {
-  if(!icao) return '?';
+  if(!icao) return {nom:'?', flag:''};
   const p2 = icao.slice(0,2).toUpperCase();
   const p1 = icao[0].toUpperCase();
+  // [nom, code ISO pour drapeau]
   const m2 = {
-    'LF':'France','LT':'Turquie','LI':'Italie','LE':'Espagne','LD':'Croatie',
-    'LG':'Grèce','LP':'Portugal','LY':'Serbie','LZ':'Slovaquie','LO':'Autriche',
-    'LS':'Suisse','LB':'Bulgarie','LH':'Hongrie','LK':'Tchéquie','LR':'Roumanie',
-    'EH':'Pays-Bas','EB':'Belgique','ED':'Allemagne','EG':'Royaume-Uni',
-    'EI':'Irlande','EK':'Danemark','EN':'Norvège','EP':'Pologne','ES':'Suède',
-    'EF':'Finlande','EV':'Lettonie','EY':'Lituanie','EE':'Estonie',
-    'OL':'Liban','OI':'Iran','OJ':'Jordanie','OE':'Arabie Saoudite',
-    'DI':'Cote Ivoire','DN':'Nigeria','DR':'Niger','DT':'Tunisie',
-    'FE':'Centrafrique','FM':'Madagascar','FN':'Angola','FO':'Gabon',
-    'FT':'Tchad','FZ':'Congo RDC','FA':'Afrique du Sud','FC':'Congo',
-    'GM':'Maroc','GO':'Senegal','GU':'Guinee','HA':'Ethiopie',
-    'HE':'Egypte','HK':'Kenya','HS':'Soudan','HT':'Tanzanie','HU':'Ouganda',
-    'NW':'Nouvelle-Caledonie','NT':'Polynesie Fr.','PH':'Hawaii',
-    'TF':'Martinique','CF':'Canada','CY':'Canada',
-    'UA':'Kazakhstan','UB':'Azerbaidjan','UG':'Georgie','UK':'Ukraine',
-    'UU':'Russie','ZB':'Chine','RJ':'Japon','RK':'Coree du Sud',
-    'VT':'Thailande','VH':'Australie','RP':'Philippines',
-    'GOBD':'Senegal','FTTJ':'Tchad','DRRN':'Niger','LGSA':'Grece',
-    'FMEE':'Reunion','DIAP':'Cote Ivoire','FEFF':'Centrafrique',
-    'LFMI':'France','LFOE':'France','LFKB':'France','LFPG':'France',
-    'LFBO':'France','NWWW':'Nouvelle-Caledonie','PHNL':'Hawaii',
-    'CYVR':'Canada','OLBA':'Liban','TFFF':'Martinique',
+    'LF':['France','FR'],'LT':['Turquie','TR'],'LI':['Italie','IT'],
+    'LE':['Espagne','ES'],'LD':['Croatie','HR'],'LG':['Grèce','GR'],
+    'LP':['Portugal','PT'],'LY':['Serbie','RS'],'LZ':['Slovaquie','SK'],
+    'LO':['Autriche','AT'],'LS':['Suisse','CH'],'LB':['Bulgarie','BG'],
+    'LH':['Hongrie','HU'],'LK':['Tchéquie','CZ'],'LR':['Roumanie','RO'],
+    'LL':['Israël','IL'],'LM':['Malte','MT'],'LJ':['Slovénie','SI'],
+    'EH':['Pays-Bas','NL'],'EB':['Belgique','BE'],'ED':['Allemagne','DE'],
+    'EG':['Royaume-Uni','GB'],'EI':['Irlande','IE'],'EK':['Danemark','DK'],
+    'EN':['Norvège','NO'],'EP':['Pologne','PL'],'ES':['Suède','SE'],
+    'EF':['Finlande','FI'],'EV':['Lettonie','LV'],'EY':['Lituanie','LT'],
+    'EE':['Estonie','EE'],'OL':['Liban','LB'],'OI':['Iran','IR'],
+    'OJ':['Jordanie','JO'],'OE':['Arabie Saoudite','SA'],'OK':['Koweït','KW'],
+    'OO':['Oman','OM'],'OT':['Qatar','QA'],'OS':['Syrie','SY'],
+    'DI':["Côte d'Ivoire",'CI'],'DN':['Nigeria','NG'],'DR':['Niger','NE'],
+    'DT':['Tunisie','TN'],'DG':['Ghana','GH'],
+    'FE':['Centrafrique','CF'],'FF':['Centrafrique','CF'],
+    'FM':['Madagascar','MG'],'FR':['Réunion','RE'],'FN':['Angola','AO'],
+    'FO':['Gabon','GA'],'FT':['Tchad','TD'],'FZ':['Congo RDC','CD'],
+    'FA':['Afrique du Sud','ZA'],'FC':['Congo','CG'],'FK':['Cameroun','CM'],
+    'FL':['Zambie','ZM'],'FV':['Zimbabwe','ZW'],'FW':['Malawi','MW'],
+    'GM':['Maroc','MA'],'GO':['Sénégal','SN'],'GU':['Guinée','GN'],
+    'GL':['Libéria','LR'],'GF':['Sierra Leone','SL'],'GV':['Cap-Vert','CV'],
+    'HA':['Éthiopie','ET'],'HE':['Égypte','EG'],'HK':['Kenya','KE'],
+    'HS':['Soudan','SD'],'HT':['Tanzanie','TZ'],'HU':['Ouganda','UG'],
+    'HR':['Rwanda','RW'],'HC':['Somalie','SO'],
+    'NW':['Nouvelle-Calédonie','NC'],'NT':['Polynésie Fr.','PF'],
+    'TF':['Martinique','MQ'],'TT':['Trinité','TT'],'TX':['Bermudes','BM'],
+    'CF':['Canada','CA'],'CY':['Canada','CA'],
+    'UA':['Kazakhstan','KZ'],'UB':['Azerbaïdjan','AZ'],'UG':['Géorgie','GE'],
+    'UK':['Ukraine','UA'],'UM':['Biélorussie','BY'],'UU':['Russie','RU'],
+    'ZB':['Chine','CN'],'ZS':['Chine','CN'],'RJ':['Japon','JP'],
+    'RK':['Corée du Sud','KR'],'VT':['Thaïlande','TH'],
+    'VH':['Australie','AU'],'RP':['Philippines','PH'],
+    'PH':['Hawaï','US'],'PHNL':['Hawaï','US'],'CYVR':['Canada','CA'],
+    'OLBA':['Liban','LB'],'TFFF':['Martinique','MQ'],
+    'NWWW':['Nouvelle-Calédonie','NC'],
   };
-  // try full ICAO first, then 2-letter prefix
-  return m2[icao.toUpperCase()] || m2[p2] || {'L':'Europe','E':'Europe Nord','K':'Etats-Unis','C':'Canada','M':'Mexique','S':'Amerique Sud','T':'Caraibes','F':'Afrique','G':'Afrique Ouest','H':'Afrique Est','N':'Pacifique','O':'Moyen-Orient','P':'Pacifique Nord','R':'Asie','U':'Ex-URSS','V':'Asie Sud','W':'Asie SE','Y':'Australie','Z':'Asie Est'}[p1] || '?';
+  const r = m2[icao.toUpperCase()] || m2[p2];
+  if(r) return {nom:r[0], flag:isoToFlag(r[1])};
+  const fallback = {'L':'Europe','E':'Europe Nord','K':'États-Unis','C':'Canada','M':'Mexique','S':'Amér. Sud','T':'Caraïbes','F':'Afrique','G':'Afrique O.','H':'Afrique E.','N':'Pacifique','O':'Moyen-Orient','P':'Pacifique N.','R':'Asie','U':'Ex-URSS','V':'Asie S.','W':'Asie SE','Y':'Australie','Z':'Asie E.'};
+  return {nom: fallback[p1] || '?', flag:''};
+}
+
+function isoToFlag(iso) {
+  if(!iso||iso.length!==2) return '';
+  return String.fromCodePoint(...[...iso.toUpperCase()].map(c=>0x1F1E6-65+c.charCodeAt(0)));
 }
 
 </script>
